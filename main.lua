@@ -473,7 +473,9 @@ end
 --==============================================================================
 -- Paste List BEGIN
 --==============================================================================
-
+local function escape_lua_pattern(s)
+	return s:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+end
 
 -- handle code/file-list clipboard mimetype
 local function handle_code_file_list_paste(content)
