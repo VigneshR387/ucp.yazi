@@ -813,6 +813,7 @@ function M:handle_file_list_paste(file_uris, no_hover, show_notify)
 							{ desc = string.format("Progress: %d/%d", i, #file_uris), on = "|" },
 							{ desc = "",                                              on = "|" },
 							{ desc = "Overwrite",                                     on = "o" },
+							{ desc = "Merge contents",                                on = "m" },
 							{ desc = "Create copy (_copy)",                           on = "c" },
 							{ desc = "Skip directory",                                on = "q" },
 							{ desc = "Overwrite All",                                 on = "O" },
@@ -879,7 +880,14 @@ function M:handle_file_list_paste(file_uris, no_hover, show_notify)
 							end
 						end
 					end
-				elseif action == 2 then -- Create copy
+				elseif action == 2 then -- Merge
+					-- Simply copy into existing directory without deleting it
+					if copy_directory(file_uri, dir_path, no_hover) then
+						success_count = success_count + 1
+					else
+						warn("Failed to merge directory: %s", tostring(dir_path))
+					end
+				elseif action == 3 then -- Create copy
 					-- Generate copy directory name with _copy suffix
 					local copy_name = file_name .. "_copy"
 					local copy_path = Url(pathJoin(get_cwd(), copy_name))
