@@ -605,7 +605,7 @@ local function copy_directory(source_dir, target_dir, no_hover)
 	local success = true
 	for line in source_files:lines() do
 		-- Get relative path from source directory
-		local rel_path = line:gsub("^" .. source_dir:gsub("%%", "%%%%") .. "/", "")
+		local rel_path = line:gsub("^" .. escape_lua_pattern(source_dir) .. "/", "")
 		local target_file_path = Url(pathJoin(tostring(target_dir), rel_path))
 
 		-- Read source file content
@@ -706,7 +706,7 @@ local function handle_directory_collision(dir_path, source_file_uri, source_file
 						local success = true
 						for line in source_files:lines() do
 							-- Get relative path from source directory
-							local rel_path = line:gsub("^" .. source_file_uri:gsub("%%", "%%%%") .. "/", "")
+							local rel_path = line:gsub("^" .. escape_lua_pattern(source_dir) .. "/", "")
 							local target_file_path = Url(pathJoin(tostring(target_file), rel_path))
 
 							-- Read source file content
