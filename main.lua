@@ -694,19 +694,20 @@ local function handle_directory_collision(dir_path, source_file_uri, source_file
 		if not removed and err and tostring(err):match("Is a directory") then
 			-- Target is also a directory, recursively overwrite contents
 			-- Check if source is also a directory
-			local source_dir_check = io.popen("test -d " .. source_file_uri .. " && echo dir || echo file 2>/dev/null")
+			local source_uri_esc = tostring(source_file_uri):gsub("'", "'\\''")
+			local source_dir_check = io.popen("test -d '" .. source_uri_esc .. "' && echo dir || echo file 2>/dev/null")
 			if source_dir_check then
 				local result = source_dir_check:read("*a")
 				source_dir_check:close()
 
 				if result:match("dir") then
 					-- Both are directories, recursively overwrite contents
-					local source_files = io.popen("find " .. source_file_uri .. " -type f 2>/dev/null")
+					local source_files = io.popen("find '" .. source_uri_esc .. "' -type f 2>/dev/null")
 					if source_files then
 						local success = true
 						for line in source_files:lines() do
 							-- Get relative path from source directory
-							local rel_path = line:gsub("^" .. escape_lua_pattern(source_dir) .. "/", "")
+							local rel_path = line:gsub("^" .. escape_lua_pattern(source_file_uri) .. "/", "")
 							local target_file_path = Url(pathJoin(tostring(target_file), rel_path))
 
 							-- Read source file content
