@@ -1321,6 +1321,11 @@ function M:paste_entry(job)
 				ya.emit("unyank", {})
 				return
 			end
+			if #yanked_files > 0 then
+				ya.emit("paste", {})
+				ya.emit("unyank", {})
+			end
+			return
 		end
 
 		-- 3: Handle image/* mimetype
