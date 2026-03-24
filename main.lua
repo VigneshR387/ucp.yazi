@@ -122,6 +122,11 @@ local function warn(s, ...)
 	ya.notify({ title = PackageName, content = string.format(s, ...), timeout = 3, level = "warn" })
 end
 
+local function clipboard_cmd(wayland_cmd, x11_cmd)
+	local is_wayland = os.getenv("WAYLAND_DISPLAY") ~= nil
+	return is_wayland and wayland_cmd or x11_cmd
+end
+
 --==============================================================================
 -- Helpers END
 --==============================================================================
@@ -348,7 +353,9 @@ local function get_clipboard_image_targets()
 	end
 
 	-- Try Linux clipboard tools
-	handle = io.popen("xclip -selection clipboard -o -t TARGETS 2>/dev/null || wl-paste --list-types 2>/dev/null")
+	local cmd =
+		clipboard_cmd("wl-paste --list-types 2>/dev/null", "xclip -selection clipboard -o -t TARGETS 2>/dev/null")
+	handle = io.popen(cmd)
 	if not handle then
 		return nil
 	end
@@ -489,7 +496,12 @@ end
 local function handle_code_file_list_paste(content)
 	ya.dbg("Found code/file-list target, attempting to read...")
 	-- Try code/file-list format (VS Code and other editors)
-	local code_handle = io.popen("xclip -selection clipboard -o -t code/file-list 2>/dev/null")
+
+	local cmd = clipboard_cmd(
+		"wl-paste -t code/file-list 2>/dev/null",
+		"xclip -selection clipboard -o -t code/file-list 2>/dev/null"
+	)
+	local codehandle = io.popen(cmd)
 	if code_handle then
 		local code_content = code_handle:read("*a")
 		code_handle:close()
@@ -519,9 +531,13 @@ local function handle_code_file_list_paste(content)
 end
 
 local function handle_text_uri_list_paste(content)
+	-- Get text/uri-list content
+	local cmd = clipboard_cmd(
+		"wl-paste -t text/uri-list 2>/dev/null",
+		"xclip -selection clipboard -o -t text/uri-list 2>/dev/null"
+	)
 	ya.dbg("Found text/uri-list target as fallback, attempting to read...")
-	local uri_handle = io.popen(
-		"xclip -selection clipboard -o -t text/uri-list 2>/dev/null || wl-paste -t text/uri-list 2>/dev/null")
+	local uri_handle = io.popen(cmd)
 	if uri_handle then
 		local uri_content = uri_handle:read("*a")
 		uri_handle:close()
@@ -565,9 +581,11 @@ local function get_clipboard_file_uris()
 			end
 		end
 	end
-
+	-- Get targets
+	local cmd =
+		clipboard_cmd("wl-paste --list-types 2>/dev/null", "xclip -selection clipboard -o -t TARGETS 2>/dev/null")
 	-- Try to get file URI from clipboard (common in Linux file managers)
-	handle = io.popen("xclip -selection clipboard -o -t TARGETS 2>/dev/null || wl-paste --list-types 2>/dev/null")
+	handle = io.popen(cmd)
 	if not handle then
 		return nil
 	end
@@ -1293,7 +1311,9 @@ local function get_clipboard_mimetypes()
 	end
 
 	-- Try Linux clipboard tools (xclip or wl-paste)
-	handle = io.popen("xclip -selection clipboard -o -t TARGETS 2>/dev/null || wl-paste --list-types 2>/dev/null")
+	local cmd =
+		clipboard_cmd("wl-paste --list-types 2>/dev/null", "xclip -selection clipboard -o -t TARGETS 2>/dev/null")
+	handle = io.popen(cmd)
 	if not handle then
 		return nil
 	end
