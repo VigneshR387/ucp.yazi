@@ -605,7 +605,7 @@ local function copy_directory(source_dir, target_dir, no_hover)
 	local success = true
 	for line in source_files:lines() do
 		-- Get relative path from source directory
-		local rel_path = line:gsub("^" .. escape_lua_pattern(source_dir) .. "/", "")
+		local rel_path = line:gsub("^" .. escape_lua_pattern(tostring(source_dir)) .. "/", "")
 		local target_file_path = Url(pathJoin(tostring(target_dir), rel_path))
 
 		-- Read source file content
